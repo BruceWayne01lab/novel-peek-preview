@@ -6,9 +6,29 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ExternalLink, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { processNovelContent, schemas } from "@/lib/security";
 
 export default function NovelDetail() {
   const { id } = useParams();
+  
+  // Validate novel ID
+  const validationResult = schemas.novelId.safeParse(id);
+  if (!validationResult.success) {
+    return (
+      <div className="min-h-screen bg-gradient-warm flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">Invalid Novel ID</h1>
+          <Link to="/">
+            <Button variant="literary">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Library
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  
   const novel = novels.find(n => n.id === id);
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -116,9 +136,12 @@ export default function NovelDetail() {
           <Card className="bg-card shadow-book border-0">
             <CardContent className="p-8 md:p-12">
               <div className="prose prose-lg max-w-none font-reading leading-relaxed">
-                <div className="whitespace-pre-line text-foreground">
-                  {novel.pages[currentPage]}
-                </div>
+                <div 
+                  className="whitespace-pre-line text-foreground"
+                  dangerouslySetInnerHTML={{ 
+                    __html: processNovelContent(novel.pages[currentPage]) 
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
